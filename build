@@ -1,0 +1,9 @@
+#!/bin/bash
+
+CC=gcc
+FLAGS="-Wall -Werror -pedantic -std=c2x -ggdb"
+SRC=src
+BIN=bin
+SO=so
+
+gcc $FLAGS -o $BIN/main $SRC/*.c -L./$SO -lSDL3
