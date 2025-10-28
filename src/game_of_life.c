@@ -11,7 +11,7 @@ Game *Game_Init(int width, int height)
 
 	game->width     = width;
 	game->height    = height;
-	game->cell_size = 2;
+	game->cell_size = CELL_SIZE;
 	game->rows      = height/game->cell_size;
 	game->cols      = width/game->cell_size;
 	game->grid      = (char*)malloc(game->rows * game->cols * sizeof(char));
@@ -69,9 +69,9 @@ void Game_Print_Grid(Game* game)
 }
 
 
-void Game_Draw_Grid(SDL_Renderer *renderer, Game *game)
+void Game_Draw_Grid(Game *game, SDL_Renderer *renderer)
 {
-	SDL_SetRenderDrawColor(renderer, 0x22, 0x8c, 0x2c, 0);
+	SDL_SetRenderDrawColor(renderer, CELL_COLOR);
 
 	for (int row = 0; row < game->rows; row++)
 	{
@@ -85,11 +85,24 @@ void Game_Draw_Grid(SDL_Renderer *renderer, Game *game)
 }
 
 
+void Game_Draw_Mesh(Game *game, SDL_Renderer *renderer)
+{
+	SDL_SetRenderDrawColor(renderer, MESH_COLOR);
+
+	for (int row = 0; row <= game->rows; row++)
+	{
+		SDL_RenderLine(renderer, 0, row * game->cell_size, game->width, row * game->cell_size);
+	}
+
+	for (int col = 0; col <= game->cols; col++)
+	{
+		SDL_RenderLine(renderer, col * game->cell_size, 0, col * game->cell_size, game->height);
+	}
+}
+
+
 void Game_Update_Grid(Game* game)
 {
-	if (! game->should_update)
-		return;
-
 	int index = 0;
 	char *new_grid = (char*)malloc(game->rows * game->cols * sizeof(char)); 
 	memcpy(new_grid, game->grid, game->rows * game->cols * sizeof(char));
@@ -130,10 +143,38 @@ void Game_Update_Grid(Game* game)
 }
 
 
+void Game_Set_Cells_DEAD(Game *game)
+{
+	game->should_update = false;
+
+	for (int row = 0; row < game->rows; row++)
+	{
+		for (int col = 0; col < game->cols; col++)
+		{
+			int index = Game_Get_Grid_Index(game, row, col);
+			game->grid[index] = DEAD;
+		}
+	}
+}
+
+
 void Game_Reset(Game **game, int new_width, int new_height)
 {
 	Game_Free(*game);
 	*game = Game_Init(new_width, new_height);
+}
+
+
+void Game_Update_Cell(Game *game, float x, float y)
+{
+	int row = (int)y/game->cell_size;
+	int col = (int)x/game->cell_size;
+	int index = Game_Get_Grid_Index(game, row, col);
+
+	if (game->grid[index] == LIVE)
+		game->grid[index] = DEAD;
+	else
+		game->grid[index] = LIVE;
 }
 
 

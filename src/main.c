@@ -46,11 +46,17 @@ int main(int argc, char* argv[])
 						case SDLK_R:
 							Game_Randomize_Grid(game);
 							break;
-						case SDLK_P:
+						case SDLK_V:
 							Game_Print_Grid(game);
 							break;
-						case SDLK_U:
+						case SDLK_P:
 							game->should_update = !game->should_update;
+							break;
+						case SDLK_S:
+							Game_Update_Grid(game);
+							break;
+						case SDLK_C:
+							Game_Set_Cells_DEAD(game);
 							break;
 					}
 					break;
@@ -62,16 +68,21 @@ int main(int argc, char* argv[])
 					SDL_GetWindowSize(window, &width, &height);
 					Game_Reset(&game, width, height);
 					break;
+				case SDL_EVENT_MOUSE_BUTTON_UP:
+					Game_Update_Cell(game, event.motion.x, event.motion.y);
+					break;
 			}
 		}
 
-		SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0xFF);
+		SDL_SetRenderDrawColor(renderer, BG_COLOR);
 		SDL_RenderClear(renderer);
-		Game_Draw_Grid(renderer, game);
+		Game_Draw_Grid(game, renderer);
+		Game_Draw_Mesh(game, renderer);
 		SDL_RenderPresent(renderer);
 		SDL_Delay(25);
 		
-		Game_Update_Grid(game);
+		if (game->should_update)
+			Game_Update_Grid(game);
 	}
 
 	Game_Free(game);
