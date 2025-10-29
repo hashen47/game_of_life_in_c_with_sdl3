@@ -11,17 +11,14 @@ int main(int argc, char* argv[])
 {
 	SDL_Init(SDL_INIT_VIDEO);
 
-	int width = 0;
-	int height = 0;
 	Game *game = NULL;
 	bool is_running = true;
 	SDL_Window *window = NULL;
 	SDL_Renderer *renderer = NULL;
 
 	SDL_CreateWindowAndRenderer("Game Of Life", 1200, 900, 0, &window, &renderer);
-	SDL_GetWindowSize(window, &width, &height);
 
-	game = Game_Init(width, height);
+	game = Game_Init();
 
 	while (is_running)
 	{
@@ -60,16 +57,25 @@ int main(int argc, char* argv[])
 							break;
 					}
 					break;
-				case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
-					SDL_GetWindowSize(window, &width, &height);
-					Game_Reset(&game, width, height);
+				case SDL_EVENT_MOUSE_MOTION:
+					if (game->mode == NAVIGATION_MODE)
+						Game_Set_XY_Cur_Offset(game, event.button.x, event.button.y);
 					break;
-				case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
-					SDL_GetWindowSize(window, &width, &height);
-					Game_Reset(&game, width, height);
+				case SDL_EVENT_MOUSE_BUTTON_DOWN:
+					Game_Set_Mode(game, NAVIGATION_MODE);
+					Game_Set_XY(game, event.button.x, event.button.y);
 					break;
 				case SDL_EVENT_MOUSE_BUTTON_UP:
-					Game_Update_Cell(game, event.motion.x, event.motion.y);
+					if (game->nav_state->cur_x_offset == 0 && game->nav_state->cur_y_offset == 0)
+						Game_Update_Cell(game, event.motion.x, event.motion.y);
+					Game_Set_Mode(game, DEFAULT_MODE);
+					Game_Update_XY_Offset(game);
+					break;
+				case SDL_EVENT_MOUSE_WHEEL:
+					float mouse_x = 0;
+					float mouse_y = 0;
+					SDL_GetMouseState(&mouse_x, &mouse_y);
+					Game_Zoom(game, mouse_x, mouse_y, event.wheel.y > 0);
 					break;
 			}
 		}
@@ -79,7 +85,7 @@ int main(int argc, char* argv[])
 		Game_Draw_Grid(game, renderer);
 		Game_Draw_Mesh(game, renderer);
 		SDL_RenderPresent(renderer);
-		SDL_Delay(25);
+		// SDL_Delay(25);
 		
 		if (game->should_update)
 			Game_Update_Grid(game);
