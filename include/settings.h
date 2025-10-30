@@ -9,7 +9,9 @@
 
 
 // SIZES
-#define CELL_SIZE 5 
+#define ROWS 500 
+#define COLS 500
+#define CELL_SIZE 5
 
 
 #endif
